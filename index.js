@@ -6,16 +6,13 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dns = require('dns');
 
-// Google DNS
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
-// Models
 const Product = require('./product');
 const Order = require('./order');
 
 const app = express();
 
-// Middleware
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -23,6 +20,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 // ==================== ROOT ROUTE ====================
 app.get('/', (req, res) => {
   res.json({ 
@@ -34,6 +32,7 @@ app.get('/', (req, res) => {
     }
   });
 });
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'API is running ✅' });
@@ -47,16 +46,14 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+console.log('🔌 Tentative de connexion à MongoDB...');
+
+mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connectée avec succès!');
   })
   .catch(err => {
     console.error('❌ Erreur de connexion MongoDB:', err.message);
-    // Pas d'exit, le serveur continue et réessaie
   });
 
 // ==================== PRODUCTS ROUTES ====================
@@ -94,7 +91,6 @@ app.get('/products/:id', async (req, res) => {
 // POST créer un produit
 app.post('/products', async (req, res) => {
   try {
-    // Validation basique
     if (!req.body.name || !req.body.price || !req.body.image || !req.body.category) {
       return res.status(400).json({ error: 'Champs requis manquants' });
     }
@@ -173,7 +169,6 @@ app.get('/orders', async (req, res) => {
 // POST créer une commande
 app.post('/orders', async (req, res) => {
   try {
-    // Validation basique
     if (!req.body.clientName || !req.body.clientPhone || !req.body.items) {
       return res.status(400).json({ error: 'Champs requis manquants' });
     }
@@ -214,7 +209,7 @@ app.put('/orders/:id', async (req, res) => {
   }
 });
 
-// DELETE supprimer une commande (optionnel)
+// DELETE supprimer une commande
 app.delete('/orders/:id', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
